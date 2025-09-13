@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import './App.css';
+
+function App() {
+  const [biomass, setBiomass] = useState('');
+  const [features, setFeatures] = useState({
+    Pyrolysis: '',
+    BET: '',
+    ICE: '',
+    'Reversible charge': '',
+    'Cycle N': '',
+    'Retention ratio': '',
+    'Heat charge': '',
+    'Heat capacity': ''
+  });
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+
+  const biomassOptions = [
+    "Macadamia nutshell", "Pine pollen", "Wheat straw", "Pistachio shell", 
+    "Switchgrass", "Walnut shell", "Blue-green algae", "Cedarwood bark",
+    "Chlorella vulgaris", "Waste bagasse", "Jackfruit rag", "Sorghum stalk",
+    "Walnut shell", "Waste coffee", "Spartina alterniflora", "Eucalyptus",
+    "Wood block", "Oatmeal", "Date palm seed", "Miscanthus",
+    "Fir wood", "Rice husk", "Ash wood", "Sugarcane bagasse",
+    "Olive stone", "Kapok fiber", "Apple pomace", "Corn cob",
+    "Cherry petal", "Silver willow blossom", "Beech wood", "Macadamia shell",
+    "Corn straw pith", "Almond shell", "Coconut endocarp", "Corn silk",
+    "Cotton", "Scrap wood", "Sycamore fruit", "Pine wood", "Tamarind fruits",
+    "Lotus seedpod", "Poplar wood", "Mangosteen shell", "Argan shell",
+    "Kelp algae", "Maple tree", "Lotus stem", "Walnut shell", "Waste cork",
+    "Oak leave", "Soybean root", "Pinecone", "Rice husk", "Dandelion",
+    "Spinifex", "Ginkgo leave", "Water caltrop", "Lyche seed", "Buckwheat hulls",
+    "Shaddock peel"
+  ];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFeatures(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setResult(null);
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/predict/', {
+        Biomass: biomass,
+        ...features
+      });
+      setResult(response.data.Reversible_capacity);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Something went wrong');
+    }
+  };
+
+  return (
+    <div className="app-container">
+      <h1 className="app-title">Predict Reversible Capacity</h1>
+      <form className="app-form" onSubmit={handleSubmit}>
+        <label className="app-label">
+          Biomass:
+          <select
+            className="app-select"
+            value={biomass}
+            onChange={(e) => setBiomass(e.target.value)}
+            required
+          >
+            <option value="">Select biomass</option>
+            {biomassOptions.map((b, idx) => (
+              <option key={idx} value={b}>{b}</option>
+            ))}
+          </select>
+        </label>
+
+        {Object.keys(features).map((feat, idx) => (
+          <div key={idx} className="feature-input">
+            <label className="app-label">
+              {feat}:
+              <br />
+              <input
+                className="app-input"
+                type="number"
+                name={feat}
+                value={features[feat]}
+                onChange={handleChange}
+                required
+                step="any"
+              />
+            </label>
+          </div>
+        ))}
+
+        <button type="submit" className="app-button">Predict</button>
+      </form>
+
+      {result && <h2 className="app-result">Predicted Reversible Capacity: {result}</h2>}
+      {error && <h2 className="app-error">Error: {error}</h2>}
+    </div>
+  );
+}
+
+export default App;
