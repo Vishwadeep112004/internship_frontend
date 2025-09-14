@@ -4,21 +4,29 @@ import './App.css';
 
 function App() {
   const [biomass, setBiomass] = useState('');
-  const [features, setFeatures] = useState({
-    Pyrolysis: '',
-    BET: '',
-    ICE: '',
-    'Reversible charge': '',
-    'Cycle N': '',
-    'Retention ratio': '',
-    'Heat charge': '',
-    'Heat capacity': ''
-  });
+
+  // mapping between pretty label and backend key
+  const featureMapping = {
+    "Pyrolysis Temperature (°C)": "pyrolusis",
+    "BET Surface Area (m²/g)": "BET",
+    "ICE Content (%)": "ICE",
+    "Reversible Charge (mAh/g)": "Rch",
+    "Cycle Number": "Cycle N",
+    "Retention Ratio (%)": "Retention ratio",
+    "H Charge (mAh/g)": "H charge",
+    "H Capacity (mAh/g)": "H capacity"
+  };
+
+  // initialize features state with backend keys
+  const [features, setFeatures] = useState(
+    Object.fromEntries(Object.values(featureMapping).map(k => [k, '']))
+  );
+
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
   const biomassOptions = [
-    "Macadamia nutshell", "Pine pollen", "Wheat straw", "Pistachio shell", 
+    "Macadamia nutshell", "Pine pollen", "Wheat straw", "Pistachio shell",
     "Switchgrass", "Walnut shell", "Blue-green algae", "Cedarwood bark",
     "Chlorella vulgaris", "Waste bagasse", "Jackfruit rag", "Sorghum stalk",
     "Walnut shell", "Waste coffee", "Spartina alterniflora", "Eucalyptus",
@@ -46,10 +54,10 @@ function App() {
     setResult(null);
 
     try {
-      const response = await axios.post('https://internship-backend-ivo5.onrender.com/api/predict/', {
-        Biomass: biomass,
-        ...features
-      });
+      const response = await axios.post(
+        'https://internship-backend-ivo5.onrender.com/api/predict/',
+        { Biomass: biomass, ...features }
+      );
       setResult(response.data.Reversible_capacity);
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
@@ -75,16 +83,16 @@ function App() {
           </select>
         </label>
 
-        {Object.keys(features).map((feat, idx) => (
-          <div key={idx} className="feature-input">
+        {Object.entries(featureMapping).map(([label, key]) => (
+          <div key={key} className="feature-input">
             <label className="app-label">
-              {feat}:
+              {label}:
               <br />
               <input
                 className="app-input"
                 type="number"
-                name={feat}
-                value={features[feat]}
+                name={key}
+                value={features[key]}
                 onChange={handleChange}
                 required
                 step="any"
