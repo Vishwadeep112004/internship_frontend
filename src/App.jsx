@@ -5,7 +5,6 @@ import './App.css';
 function App() {
   const [biomass, setBiomass] = useState('');
 
-  // mapping between pretty label and backend key
   const featureMapping = {
     "Pyrolysis Temperature (°C)": "pyrolusis",
     "BET Surface Area (m²/g)": "BET",
@@ -17,13 +16,13 @@ function App() {
     "H Capacity (mAh/g)": "H capacity"
   };
 
-  // initialize features state with backend keys
   const [features, setFeatures] = useState(
     Object.fromEntries(Object.values(featureMapping).map(k => [k, '']))
   );
 
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const biomassOptions = [
     "Macadamia nutshell", "Pine pollen", "Wheat straw", "Pistachio shell",
@@ -52,6 +51,7 @@ function App() {
     e.preventDefault();
     setError('');
     setResult(null);
+    setLoading(true);
 
     try {
       const response = await axios.post(
@@ -61,6 +61,8 @@ function App() {
       setResult(response.data.Reversible_capacity);
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,11 +103,18 @@ function App() {
           </div>
         ))}
 
-        <button type="submit" className="app-button">Predict</button>
+        {!loading && (
+          <button type="submit" className="app-button">
+            Predict
+          </button>
+        )}
       </form>
 
-      {result && <h2 className="app-result">Predicted Reversible Capacity: {result}</h2>}
-      {error && <h2 className="app-error">Error: {error}</h2>}
+      {loading && <div className="loader">Loading...</div>}
+      {result && !loading && (
+        <h2 className="app-result">Predicted Reversible Capacity: {result}</h2>
+      )}
+      {error && !loading && <h2 className="app-error">Error: {error}</h2>}
     </div>
   );
 }
