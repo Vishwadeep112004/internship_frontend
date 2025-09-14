@@ -46,7 +46,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/predict/', {
+      const response = await axios.post('https://internship-backend-ivo5.onrender.com/api/predict/', {
         Biomass: biomass,
         ...features
       });
